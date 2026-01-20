@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <!-- アプリ名称を改定 -->
+    <title>想をトドケル</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <!-- Top bar: back & logout shown on non-login views -->
+      <header id="topbar" class="topbar" aria-label="操作バー">
+        <button id="btnBack" class="icon-btn" type="button" aria-label="戻る">
+          <!-- Left arrow icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.5 5.5 9 12l6.5 6.5-1.4 1.4L6.2 12l7.9-7.9 1.4 1.4z" />
+          </svg>
+          <span>戻る</span>
+        </button>
+        <div id="topbarTitle" class="topbar-title" aria-hidden="true">
+          想をトドケル
+        </div>
+        <button id="btnLogout" class="icon-btn" type="button" aria-label="終了">
+          <!-- Logout/restart icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 13.65-6.65z"
+            />
+          </svg>
+          <span>終了</span>
+        </button>
+      </header>
+
+      <main class="main">
+        <!-- Login view -->
+        <section id="view-login" class="view active" aria-label="ログイン">
+          <div class="hero">
+            <div class="mascot">
+              <img
+                src="トドケルちゃん.png"
+                alt="トドケルちゃんのキャラクター"
+              />
+            </div>
+            <!-- アプリタイトルを変更 -->
+            <h1 class="app-title">想をトドケル</h1>
+            <p class="tagline">安全課が救命情報を迅速に提供するためのアプリです。</p>
+          </div>
+
+          <div class="login-forms">
+            <!-- ユーザーログイン -->
+            <div class="login-section">
+              <h2>ユーザーログイン</h2>
+              <div class="input-group">
+                <label for="userPassword">パスワード</label>
+                <input
+                  id="userPassword"
+                  type="password"
+                  autocomplete="current-password"
+                />
+              </div>
+              <button id="btnUserLogin" class="btn btn-primary" type="button">
+                ログイン
+              </button>
+            </div>
+
+            <!-- 管理者ログイン入り口。クリックすると下のフォームが表示されます -->
+            <div class="login-section admin-entry">
+              <button id="btnAdminEntry" class="link-btn" type="button">
+                管理者ログイン
+              </button>
+            </div>
+
+            <!-- 管理者ログインフォーム。初期状態では非表示 -->
+            <div id="adminLoginSection" class="login-section hidden">
+              <h2>管理者ログイン</h2>
+              <div class="input-group">
+                <label for="adminId">ID</label>
+                <input id="adminId" type="text" autocomplete="username" />
+              </div>
+              <div class="input-group">
+                <label for="adminPassword">パスワード</label>
+                <input
+                  id="adminPassword"
+                  type="password"
+                  autocomplete="current-password"
+                />
+              </div>
+              <button id="btnAdminLogin" class="btn btn-primary" type="button">
+                ログイン
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Input view -->
+        <section id="view-input" class="view" aria-label="照合入力">
+          <h2>SMSを貼り付けて照合</h2>
+          <div class="input-group">
+            <label for="smsInput">SMS本文</label>
+            <textarea
+              id="smsInput"
+              rows="4"
+              placeholder="ここにSMS内容を貼り付けてください"
+            ></textarea>
+          </div>
+          <div class="input-group">
+            <label for="empId">職員ID</label>
+            <input id="empId" type="text" placeholder="IDを入力してください" />
+          </div>
+          <!-- 照合操作用ボタン。スマートフォンで均等に並ぶよう同一行に配置します -->
+          <div class="form-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <button id="btnScanHelmet" class="btn btn-secondary" type="button" style="flex:1;">ヘルメットQRを読む</button>
+            <button id="btnSearchName" class="btn btn-secondary" type="button" style="flex:1;">氏名で探す</button>
+            <button id="btnMatch" class="btn btn-primary" type="button" style="flex:1;">照合する</button>
+            <button id="btnClear" class="btn btn-secondary" type="button" style="flex:1;">クリア</button>
+          </div>
+          <p class="small muted">
+            ※ SMS本文から自動でIDを抽出しますが、手動で修正できます。
+          </p>
+        </section>
+
+        <!-- Result view -->
+        <section id="view-result" class="view" aria-label="職員情報">
+          <h2>職員情報</h2>
+          <!-- ツナグSMSから読み取った情報 -->
+          <div id="tunaguInfoCard" class="result-card"></div>
+          <!-- トドケルマスタからの情報 -->
+          <div id="todokeruInfoCard" class="result-card" style="margin-top:12px;"></div>
+          <!-- ボタン群 -->
+          <div class="result-actions" style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+            <button id="btnEditTunagu" class="btn btn-primary" type="button">ツナゲル情報の編集</button>
+            <button id="btnShowcase" class="btn btn-primary" type="button">照会モード</button>
+            <button id="btnEndShowcase" class="btn btn-secondary" type="button">照会を終わる</button>
+            <button id="btnResultBack" class="btn btn-secondary" type="button">戻る</button>
+          </div>
+        </section>
+
+        <!-- ツナゲル情報編集ビュー -->
+        <section id="view-edit-tsunagu" class="view" aria-label="ツナゲル情報編集">
+          <h2>ツナゲル情報編集</h2>
+          <div class="input-group">
+            <label for="editContactTime">連絡時間</label>
+            <input id="editContactTime" type="text" disabled />
+          </div>
+          <!-- 職員IDは内部的に保持し、画面には表示しません -->
+          <input id="editEmpId" type="hidden" />
+          <!-- 氏名フィールドとQR/検索ボタンをまとめて配置します -->
+          <div class="input-group">
+            <label for="editEmpName">氏名</label>
+            <input id="editEmpName" type="text" disabled />
+            <div class="form-row" style="margin-top:8px; gap:8px; display:flex; flex-wrap:wrap;">
+              <button id="btnEditScanHelmet" class="btn btn-secondary" type="button" style="flex:1;">ヘルメットQRを読む</button>
+              <button id="btnEditSearchName" class="btn btn-secondary" type="button" style="flex:1;">氏名で探す</button>
+            </div>
+          </div>
+          <!-- 場所とQR/地図選択ボタン -->
+          <div class="input-group">
+            <label for="editLocation">場所</label>
+            <input id="editLocation" type="text" />
+            <div class="form-row" style="margin-top:8px; gap:8px; display:flex; flex-wrap:wrap;">
+              <button id="btnEditScanLocation" class="btn btn-secondary" type="button" style="flex:1;">場所QRを読む</button>
+              <button id="btnEditMapSelect" class="btn btn-secondary" type="button" style="flex:1;">地図から選択</button>
+            </div>
+          </div>
+          <!-- 状態選択：意識/呼吸/大量出血/強い痛み -->
+          <div id="statusFields" class="status-fields">
+            <div class="status-group">
+              <div class="status-label">意識</div>
+              <div class="status-options" data-target="conscious">
+                <label><input type="radio" name="status-conscious" value="あり" />あり</label>
+                <label><input type="radio" name="status-conscious" value="なし" />なし</label>
+                <label><input type="radio" name="status-conscious" value="不明" checked />不明</label>
+              </div>
+            </div>
+            <div class="status-group">
+              <div class="status-label">呼吸</div>
+              <div class="status-options" data-target="breathing">
+                <label><input type="radio" name="status-breathing" value="あり" />あり</label>
+                <label><input type="radio" name="status-breathing" value="なし" />なし</label>
+                <label><input type="radio" name="status-breathing" value="不明" checked />不明</label>
+              </div>
+            </div>
+            <div class="status-group">
+              <div class="status-label">大量出血</div>
+              <div class="status-options" data-target="bleeding">
+                <label><input type="radio" name="status-bleeding" value="あり" />あり</label>
+                <label><input type="radio" name="status-bleeding" value="なし" />なし</label>
+                <label><input type="radio" name="status-bleeding" value="不明" checked />不明</label>
+              </div>
+            </div>
+            <div class="status-group">
+              <div class="status-label">強い痛み</div>
+              <div class="status-options" data-target="pain">
+                <label><input type="radio" name="status-pain" value="あり" />あり</label>
+                <label><input type="radio" name="status-pain" value="なし" />なし</label>
+                <label><input type="radio" name="status-pain" value="不明" checked />不明</label>
+              </div>
+            </div>
+          </div>
+          <!-- 隠しフィールド: 状態1/状態2/事故種別 -->
+          <input id="editStatus1" type="hidden" />
+          <input id="editStatus2" type="hidden" />
+          <input id="editAccident" type="hidden" />
+          <!-- 事故種別選択：ピクトグラム -->
+          <div class="input-group">
+            <label>事故種別</label>
+            <div id="accidentIcons" class="accident-icons"></div>
+          </div>
+          <div class="form-row" style="margin-top:16px; gap:8px; display:flex; flex-wrap:wrap;">
+            <button id="btnEditDone" class="btn btn-primary" type="button" style="flex:1;">編集を終わる</button>
+            <button id="btnEditCancel" class="btn btn-secondary" type="button" style="flex:1;">戻る</button>
+          </div>
+        </section>
+
+        <!-- 照会モードビュー -->
+        <section id="view-showcase" class="view" aria-label="照会モード">
+          <h2>照会モード</h2>
+          <p class="small muted" style="margin-bottom:12px;">職員以外の方は、スクロールのみ行ってください。</p>
+          <div id="showcaseCard" class="result-card"></div>
+          <p class="small" style="margin-top:12px; color: var(--muted);">※職員のみが操作してください</p>
+          <button id="btnShowcaseEnd" class="btn btn-secondary" type="button" style="margin-top:12px;">照会モードを終了</button>
+        </section>
+
+        <!-- Admin view -->
+        <section id="view-admin" class="view" aria-label="マスタ設定">
+          <h2>マスタデータ設定</h2>
+          <div class="admin-actions">
+            <button id="btnAddStaff" class="btn btn-primary" type="button">
+              新規追加
+            </button>
+            <button id="btnExport" class="btn btn-secondary" type="button">
+              エクスポート
+            </button>
+            <label for="importFile" class="btn btn-secondary">
+              インポート
+              <input type="file" id="importFile" accept=".json" hidden />
+            </label>
+          </div>
+          <table id="staffTable" class="staff-table">
+            <thead>
+              <tr>
+                <th style="width: 25%">生年月日</th>
+                <th style="width: 45%">氏名</th>
+                <th style="width: 30%">操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <hr />
+          <h3>パスワード設定</h3>
+          <div class="input-group">
+            <label for="newUserPassword">利用者パスワード</label>
+            <input id="newUserPassword" type="password" />
+          </div>
+          <button
+            id="btnSetUserPassword"
+            class="btn btn-primary"
+            type="button"
+          >
+            更新
+          </button>
+          <div class="input-group">
+            <label for="newAdminId">管理者ID</label>
+            <input id="newAdminId" type="text" />
+          </div>
+          <div class="input-group">
+            <label for="newAdminPassword">管理者パスワード</label>
+            <input id="newAdminPassword" type="password" />
+          </div>
+          <button
+            id="btnSetAdminCredentials"
+            class="btn btn-primary"
+            type="button"
+          >
+            更新
+          </button>
+
+          <!-- Modal for staff add/edit -->
+          <div id="staffFormContainer" class="modal hidden">
+            <div class="modal-content">
+              <h3 id="staffFormTitle">職員情報</h3>
+              <div class="input-group">
+                <label for="staffBirthday">生年月日</label>
+                <input id="staffBirthday" type="text" placeholder="例：1990/01/01" />
+              </div>
+              <!-- ID は内部的に保持し、表示しない -->
+              <input id="staffId" type="hidden" />
+              <div class="input-group">
+                <label for="staffName">氏名</label>
+                <input id="staffName" type="text" />
+              </div>
+            <!-- 所属（会社名など） -->
+            <div class="input-group">
+              <label for="staffAffiliation">所属</label>
+              <input id="staffAffiliation" type="text" />
+            </div>
+              <div class="input-group">
+                <label for="staffBlood">血液型</label>
+                <input id="staffBlood" type="text" />
+              </div>
+              <div class="input-group">
+                <label for="staffHistory">既往歴（カンマ区切り）</label>
+                <input id="staffHistory" type="text" />
+              </div>
+              <div class="input-group">
+                <label for="staffMeds">薬剤情報（カンマ区切り）</label>
+                <input id="staffMeds" type="text" />
+              </div>
+              <div class="input-group">
+                <label for="staffAllergy">アレルギー（カンマ区切り）</label>
+                <input id="staffAllergy" type="text" />
+              </div>
+              <div class="input-group">
+                <label for="staffDoctor">かかりつけ医</label>
+                <input id="staffDoctor" type="text" />
+              </div>
+              <div class="input-group">
+                <label for="staffContactRel">緊急連絡先（続柄）</label>
+                <input id="staffContactRel" type="text" />
+              </div>
+              <div class="input-group">
+                <label for="staffContactTel">緊急連絡先（電話番号）</label>
+                <input id="staffContactTel" type="text" />
+              </div>
+              <div class="modal-actions">
+                <button id="btnSaveStaff" class="btn btn-primary" type="button">
+                  保存
+                </button>
+                <button id="btnCancelStaff" class="btn btn-secondary" type="button">
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- 地図選択モーダル -->
+        <!--
+          The original map modal displayed only static images and a list.  To
+          mirror the behaviour of the "命をツナゲル" application, this
+          implementation embeds an SVG-based yard map.  Users can switch
+          between the overview and individual areas via the tab buttons.  In
+          the overview, three polygons delineate エリア1, エリア2, エリア3.  When an
+          area is selected, the polygons for individual places appear and
+          become clickable.  A separate list of candidates is also shown for
+          accessibility; clicking on an item will highlight the same place on
+          the map.  Selecting a place enables the "この場所を使う" button.  This
+          modal is hidden by default and toggled via script.
+        -->
+        <div id="mapModal" class="modal hidden">
+          <div class="modal-content" style="max-height:90vh; overflow:hidden;">
+            <h3 style="margin-top:0; margin-bottom:8px;">地図から場所を選択</h3>
+            <!-- Tab bar for map views: all/area1/area2/area3 -->
+            <div class="map-tabs form-row" style="gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+              <!-- Map view tabs intentionally omit the generic .btn classes to avoid full width styling -->
+              <button id="btnMapViewAll" class="map-tab" type="button" aria-selected="true">全体</button>
+              <button id="btnMapViewA1" class="map-tab" type="button">エリア1</button>
+              <button id="btnMapViewA2" class="map-tab" type="button">エリア2</button>
+              <button id="btnMapViewA3" class="map-tab" type="button">エリア3</button>
+              <button id="btnMapResetZoom" class="btn btn-secondary" type="button" style="margin-left:auto;">リセット</button>
+            </div>
+            <!-- Yard map rendered via SVG; viewBox is controlled by script -->
+            <div class="yard-container" style="width:100%; height:50vh; overflow:hidden; border-radius:8px; background:#1a1a1a;">
+              <svg id="yardSvg" class="yard-svg" width="100%" height="100%" preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+            <!-- Candidate chips/list -->
+            <div id="mapCandidates" class="map-candidates" style="margin-top:12px;"></div>
+            <div class="modal-actions" style="margin-top:12px;">
+              <button id="btnMapUse" class="btn btn-primary" type="button">この場所を使う</button>
+              <button id="btnMapSelectCancel" class="btn btn-secondary" type="button">キャンセル</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 氏名検索モーダル -->
+        <div id="nameModal" class="modal hidden">
+          <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
+            <h3 style="margin-top:0; margin-bottom:8px;">氏名で検索</h3>
+            <div class="input-group" style="margin-bottom:8px;">
+              <input id="nameSearchInput" type="text" class="search-input" placeholder="よみ(かな)/氏名で検索" />
+            </div>
+            <div id="nameList" class="name-list"></div>
+            <div class="modal-actions" style="margin-top:8px;">
+              <button id="btnNameClose" class="btn btn-secondary" type="button">閉じる</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR読み取りモーダル -->
+        <div id="qrModal" class="modal hidden">
+          <div class="modal-content" style="max-height:90vh; overflow-y:auto;">
+            <h3 id="qrModalTitle" style="margin-top:0; margin-bottom:8px;">QRを読み取る</h3>
+            <video id="qrVideo" style="width:100%;height:auto;border-radius:8px;display:none;"></video>
+            <div id="qrStatus" class="small muted" style="margin-top:8px;"></div>
+            <div class="form-row" style="gap:8px; margin-top:8px;">
+              <button id="btnQrPhoto" class="btn btn-secondary" type="button">写真で読み取る</button>
+              <button id="btnQrManual" class="btn btn-secondary" type="button">手入力</button>
+              <!-- 写真読み取り用ファイル入力。capture 属性を外して動画ライブ起動を防ぎます -->
+              <input id="qrFile" type="file" accept="image/*" hidden />
+            </div>
+            <div id="qrManualInput" class="input-group hidden" style="margin-top:8px;">
+              <input id="qrManualText" type="text" placeholder="QRコード内容を貼り付け" />
+              <button id="btnQrManualSubmit" class="btn btn-primary" type="button">読取</button>
+            </div>
+            <div class="modal-actions" style="margin-top:8px;">
+              <button id="btnQrCancel" class="btn btn-secondary" type="button">キャンセル</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 確認モーダル -->
+        <div id="confirmModal" class="modal hidden">
+          <div class="modal-content">
+            <p id="confirmMessage" style="margin-top:0;margin-bottom:16px;"></p>
+            <div class="modal-actions">
+              <button id="btnConfirmOk" class="btn btn-primary" type="button">OK</button>
+              <button id="btnConfirmCancel" class="btn btn-secondary" type="button">キャンセル</button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <div id="toast" class="toast"></div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
